@@ -13,6 +13,7 @@
 #include <math.h>
 #include <vector>
 #include "map.h"
+#include "particle_filter.h"
 
 /*
  * Struct representing one position/control measurement.
@@ -43,6 +44,19 @@ struct LandmarkObs {
 	double y;			// Local (vehicle coordinates) y position of landmark observation [m]
 };
 
+inline std::string obs_str(LandmarkObs obs) {
+  std::ostringstream oout;
+  oout << "Obs: [" << obs.x << ", " << obs.y << "]";
+  return oout.str();
+}
+
+inline void print_observations(std::vector<LandmarkObs> observations) {
+  int osize = observations.size();
+  for (int i = 0; i < osize; ++i) {
+    std::cout << obs_str(observations[i]) << std::endl;
+  }
+}
+
 /*
  * Computes the Euclidean distance between two 2D points.
  * @param (x1,y1) x and y coordinates of first point
@@ -63,6 +77,10 @@ inline double * getError(double gt_x, double gt_y, double gt_theta, double pf_x,
 		error[2] = 2.0 * M_PI - error[2];
 	}
 	return error;
+}
+
+inline double normalize_angle(double angle) {
+	return fmod(angle, 2.0 * M_PI);
 }
 
 /* Reads map data from a file.
@@ -235,5 +253,8 @@ inline bool read_landmark_data(std::string filename, std::vector<LandmarkObs>& o
 	}
 	return true;
 }
+
+
+
 
 #endif /* HELPER_FUNCTIONS_H_ */

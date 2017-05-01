@@ -10,6 +10,7 @@
 #define PARTICLE_FILTER_H_
 
 #include "helper_functions.h"
+#include <sstream>
 
 struct Particle {
 
@@ -20,6 +21,7 @@ struct Particle {
 	double weight;
 };
 
+std::string particle_str(Particle p);
 
 
 class ParticleFilter {
@@ -107,6 +109,8 @@ public:
 	const bool initialized() const {
 		return is_initialized;
 	}
+
+  void print_particles();
 };
 
 

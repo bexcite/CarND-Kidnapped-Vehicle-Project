@@ -20,7 +20,7 @@ using namespace std;
 int main() {
 	
 	// parameters related to grading.
-	int time_steps_before_lock_required = 100; // number of time steps before accuracy is checked by grader.
+	int time_steps_before_lock_required = 3; //100 // number of time steps before accuracy is checked by grader.
 	double max_runtime = 45; // Max allowable runtime to pass [sec]
 	double max_translation_error = 1; // Max allowable translation error to pass [m]
 	double max_yaw_error = 0.05; // Max allowable yaw error [rad]
@@ -78,7 +78,7 @@ int main() {
 	double cum_mean_error[3] = {0,0,0};
 	
 	for (int i = 0; i < num_time_steps; ++i) {
-		cout << "Time step: " << i << endl;
+		cout << ">>>>>>>>>>>>> Time step: " << i << endl;
 		// Read in landmark observations for current time step.
 		ostringstream file;
 		file << "data/observation/observations_" << setfill('0') << setw(6) << i+1 << ".txt";
@@ -97,8 +97,14 @@ int main() {
 		}
 		else {
 			// Predict the vehicle's next state (noiseless).
+      cout << "control: velocity = " << position_meas[i-1].velocity
+           << " yaw_rate = " << position_meas[i-1].yawrate << endl;
 			pf.prediction(delta_t, sigma_pos, position_meas[i-1].velocity, position_meas[i-1].yawrate);
 		}
+
+    // show particles
+    pf.print_particles();
+
 		// simulate the addition of noise to noiseless observation data.
 		vector<LandmarkObs> noisy_observations;
 		LandmarkObs obs;
@@ -111,6 +117,9 @@ int main() {
 			noisy_observations.push_back(obs);
 		}
 
+    // show observations
+    print_observations(noisy_observations);
+
 		// Update the weights and resample
 		pf.updateWeights(sensor_range, sigma_landmark, noisy_observations, map);
 		pf.resample();
@@ -118,6 +127,7 @@ int main() {
 		// Calculate and output the average weighted error of the particle filter over all time steps so far.
 		vector<Particle> particles = pf.particles;
 		int num_particles = particles.size();
+//		cout << "Num particles: " << num_particles << endl;
 		double highest_weight = 0.0;
 		Particle best_particle;
 		for (int i = 0; i < num_particles; ++i) {
@@ -126,6 +136,7 @@ int main() {
 				best_particle = particles[i];
 			}
 		}
+    cout << "Best particle: " << particle_str(best_particle) << endl;
 		double *avg_error = getError(gt[i].x, gt[i].y, gt[i].theta, best_particle.x, best_particle.y, best_particle.theta);
 
 		for (int j = 0; j < 3; ++j) {

@@ -11,12 +11,51 @@
 #include <numeric>
 
 #include "particle_filter.h"
+#include "helper_functions.h"
+
+
+std::string particle_str(Particle p) {
+  std::ostringstream pout;
+  pout << "P:[" << p.id << ", " << p.x << ", " << p.y << ", "
+       << p.theta << ", " << p.weight << "]";
+  return pout.str();
+}
+
+
 
 void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	// TODO: Set the number of particles. Initialize all particles to first position (based on estimates of 
 	//   x, y, theta and their uncertainties from GPS) and all weights to 1. 
 	// Add random Gaussian noise to each particle.
 	// NOTE: Consult particle_filter.h for more information about this method (and others in this file).
+
+	std::cout << "Particle::init: x=" << x << ", " << "y=" << y << ", "
+						<< "theta=" << theta << std::endl;
+
+	num_particles = 10; //100
+  particles.reserve(num_particles);
+  weights.reserve(num_particles);
+
+	// noise generation
+	std::default_random_engine gen;
+	std::normal_distribution<double> N_x(0, std[0]);
+	std::normal_distribution<double> N_y(0, std[1]);
+	std::normal_distribution<double> N_theta(0, std[2]);
+
+	for (int i = 0; i < num_particles; ++i) {
+    Particle p;
+    p.id = i;
+    p.x = x + N_x(gen);
+    p.y = y + N_y(gen);
+    p.theta = normalize_angle(theta + N_theta(gen));
+    p.weight = 1;
+    particles.push_back(p);
+    weights.push_back(p.weight);
+
+	}
+
+  is_initialized = true;
+
 
 }
 
@@ -25,6 +64,37 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	// NOTE: When adding noise you may find std::normal_distribution and std::default_random_engine useful.
 	//  http://en.cppreference.com/w/cpp/numeric/random/normal_distribution
 	//  http://www.cplusplus.com/reference/random/default_random_engine/
+
+  // noise generation
+  std::default_random_engine gen;
+  std::normal_distribution<double> N_x(0, std_pos[0]);
+  std::normal_distribution<double> N_y(0, std_pos[1]);
+  std::normal_distribution<double> N_theta(0, std_pos[2]);
+
+  if (yaw_rate < 1e-06) {
+    // yaw rate is "ZERO"
+    for (int i = 0; i < num_particles; ++i) {
+      particles[i].x += velocity * sin(particles[i].theta) * delta_t;
+      particles[i].y += velocity * (- cos(particles[i].theta) * delta_t);
+
+      //add noise
+      particles[i].x += N_x(gen);
+      particles[i].y += N_x(gen);
+      particles[i].theta = normalize_angle(particles[i].theta + N_theta(gen));
+    }
+  } else {
+    for (int i = 0; i < num_particles; ++i) {
+      particles[i].x += velocity / yaw_rate * (sin(particles[i].theta + yaw_rate * delta_t) - sin(particles[i].theta));
+      particles[i].y += velocity / yaw_rate * (cos(particles[i].theta) - cos(particles[i].theta + yaw_rate * delta_t));
+      particles[i].theta += yaw_rate * delta_t;
+
+      //add noise
+      particles[i].x += N_x(gen);
+      particles[i].y += N_x(gen);
+      particles[i].theta = normalize_angle(particles[i].theta + N_theta(gen));
+    }
+  }
+
 
 }
 
@@ -66,4 +136,10 @@ void ParticleFilter::write(std::string filename) {
 		dataFile << particles[i].x << " " << particles[i].y << " " << particles[i].theta << "\n";
 	}
 	dataFile.close();
+}
+
+void ParticleFilter::print_particles() {
+  for (int i = 0; i < num_particles; ++i) {
+    std::cout << particle_str(particles[i]) << std::endl;
+  }
 }
