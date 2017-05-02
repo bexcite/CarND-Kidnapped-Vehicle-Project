@@ -20,7 +20,7 @@ using namespace std;
 int main() {
 	
 	// parameters related to grading.
-	int time_steps_before_lock_required = 3; //100 // number of time steps before accuracy is checked by grader.
+	int time_steps_before_lock_required = 100; //100 // number of time steps before accuracy is checked by grader.
 	double max_runtime = 45; // Max allowable runtime to pass [sec]
 	double max_translation_error = 1; // Max allowable translation error to pass [m]
 	double max_yaw_error = 0.05; // Max allowable yaw error [rad]
@@ -105,6 +105,8 @@ int main() {
     // show particles
     pf.print_particles();
 
+//    std::cin.ignore();
+
 		// simulate the addition of noise to noiseless observation data.
 		vector<LandmarkObs> noisy_observations;
 		LandmarkObs obs;
@@ -120,16 +122,27 @@ int main() {
     // show observations
     print_observations(noisy_observations);
 
+//    std::cin.ignore();
+
 		// Update the weights and resample
 		pf.updateWeights(sensor_range, sigma_landmark, noisy_observations, map);
+
+    // show particles
+    cout << "Updated weights: " << endl;
+    pf.print_particles();
+
 		pf.resample();
+
+    // show particles
+    cout << "Resampled: " << endl;
+    pf.print_particles();
 		
 		// Calculate and output the average weighted error of the particle filter over all time steps so far.
 		vector<Particle> particles = pf.particles;
 		int num_particles = particles.size();
 //		cout << "Num particles: " << num_particles << endl;
 		double highest_weight = 0.0;
-		Particle best_particle;
+		Particle best_particle = particles[0];
 		for (int i = 0; i < num_particles; ++i) {
 			if (particles[i].weight > highest_weight) {
 				highest_weight = particles[i].weight;
@@ -137,6 +150,7 @@ int main() {
 			}
 		}
     cout << "Best particle: " << particle_str(best_particle) << endl;
+    cout << "Ground Truth: " << gt[i].x << " " << gt[i].y << " " << gt[i].theta << endl;
 		double *avg_error = getError(gt[i].x, gt[i].y, gt[i].theta, best_particle.x, best_particle.y, best_particle.theta);
 
 		for (int j = 0; j < 3; ++j) {
@@ -146,7 +160,9 @@ int main() {
 		
 		// Print the cumulative weighted error
 		cout << "Cumulative mean weighted error: x " << cum_mean_error[0] << " y " << cum_mean_error[1] << " yaw " << cum_mean_error[2] << endl;
-		
+
+//    std::cin.ignore();
+
 		// If the error is too high, say so and then exit.
 		if (i >= time_steps_before_lock_required) {
 			if (cum_mean_error[0] > max_translation_error || cum_mean_error[1] > max_translation_error || cum_mean_error[2] > max_yaw_error) {

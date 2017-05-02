@@ -111,6 +111,9 @@ public:
 	}
 
   void print_particles();
+
+  void transformObservations(Particle particle, std::vector<LandmarkObs>& observations);
+  void predictObservations(Particle particle, double sensor_range, Map map_landmarks, std::vector<LandmarkObs>& predicted);
 };
 
 
