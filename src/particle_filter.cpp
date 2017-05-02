@@ -29,10 +29,10 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	// Add random Gaussian noise to each particle.
 	// NOTE: Consult particle_filter.h for more information about this method (and others in this file).
 
-	std::cout << "Particle::init: x=" << x << ", " << "y=" << y << ", "
-						<< "theta=" << theta << std::endl;
+//	std::cout << "Particle::init: x=" << x << ", " << "y=" << y << ", "
+//						<< "theta=" << theta << std::endl;
 
-	num_particles = 100; //100
+	num_particles = 30; //100 - it works even with 10 particles
   particles.clear();
   particles.reserve(num_particles);
   weights.clear();
@@ -75,10 +75,8 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 
   if (fabs(yaw_rate) < 1.0e-06) {
     // yaw rate is "ZERO"
-    std::cout << "YAW RATE is ZERO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+//    std::cout << "YAW RATE is ZERO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
     for (int i = 0; i < num_particles; ++i) {
-//      particles[i].x += velocity * sin(particles[i].theta) * delta_t;
-//      particles[i].y += velocity * (- cos(particles[i].theta) * delta_t);
 
       particles[i].x += velocity * cos(particles[i].theta) * delta_t;
       particles[i].y += velocity * (sin(particles[i].theta) * delta_t);
@@ -114,26 +112,26 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
 	// NOTE: this method will NOT be called by the grading code. But you will probably find it useful to 
 	//   implement this method and use it as a helper during the updateWeights phase.
 
+  // implemented in ParticleFilter::updateWeights method
+
 }
 
 void ParticleFilter::transformObservations(Particle particle, std::vector<LandmarkObs>& observations) {
   // transforms observations from Vehicle's coordinates to Map's for given particle
-//  std::cout << "Particle = " << particle_str(particle) << std::endl;
 
   int obs_size = observations.size();
   for (int i = 0; i < obs_size; ++i) {
-//    std::cout << "Orig: " << obs_str(observations[i]) << std::endl;
-//    std::cout << "cos(particle(theta)) = " << cos(particle.theta) << ", sin(theta) = " << sin(particle.theta) << std::endl;
-//    std::cout << "x_d = " << (cos(particle.theta) * observations[i].x - sin(particle.theta) * observations[i].y + particle.x) << std::endl;
     double x_d = cos(particle.theta) * observations[i].x - sin(particle.theta) * observations[i].y + particle.x;
     double y_d = sin(particle.theta) * observations[i].x + cos(particle.theta) * observations[i].y + particle.y;
-//    std::cout << "y_d = " << y_d << std::endl;
-//    std::cout << "y_d_copy = " << (sin(particle.theta) * observations[i].x + cos(particle.theta) * observations[i].y + particle.y) << std::endl;
-//    observations[i].x = cos(particle.theta) * observations[i].x - sin(particle.theta) * observations[i].y + particle.x;
-//    observations[i].y = sin(particle.theta) * observations[i].x + cos(particle.theta) * observations[i].y + particle.y;
     observations[i].x = x_d;
     observations[i].y = y_d;
-//    std::cout << "Upd: " << obs_str(observations[i]) << std::endl;
+
+    // MAGIC: this is a mystery of C++ for some reason the next 2 lines of code is not calculating observations[i].y correctly
+    // I tried casting but is didn't help. But the above code with an itermediary var y_d works well :)
+//    observations[i].x = cos(particle.theta) * observations[i].x - sin(particle.theta) * observations[i].y + particle.x;
+//    observations[i].y = sin(particle.theta) * observations[i].x + cos(particle.theta) * observations[i].y + particle.y;
+
+
   }
 }
 
@@ -141,7 +139,6 @@ void ParticleFilter::predictObservations(Particle particle, double sensor_range,
   int map_size = map_landmarks.landmark_list.size();
   for (int i = 0; i < map_size; ++i) {
     double d = dist(particle.x, particle.y, map_landmarks.landmark_list[i].x_f, map_landmarks.landmark_list[i].y_f);
-//    std::cout << "[" << i << "] map_dist = " << d;
     if (d < sensor_range) {
       LandmarkObs obs;
       obs.x = map_landmarks.landmark_list[i].x_f;
@@ -149,9 +146,8 @@ void ParticleFilter::predictObservations(Particle particle, double sensor_range,
       obs.id = map_landmarks.landmark_list[i].id_i;
       predicted.push_back(obs);
 
-//      std::cout << " RANGE!";
     }
-//    std::cout << std::endl;
+
   }
 }
 
@@ -231,7 +227,6 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 //      std::cout << "prob = " << prob << " O=" << obs_str(transObservations[j]) << " P=" << obs_str(nearest_landmark) << ": " << nearest_landmark.id << " min_d = " << min_d << std::endl;
 
 
-
     }
 
 //    std::cout << "[" << i << "] weight = " << weight << " for " << particle_str(p) << std::endl;
@@ -255,6 +250,7 @@ void ParticleFilter::resample() {
 	// NOTE: You may find std::discrete_distribution helpful here.
 	//   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
 
+  // Don't need normalization because of std::discrete_distribution
 //  double weight_sum = 0.0;
 //  for (int i = 0; i < num_particles; ++i) {
 //    weight_sum += weights[i];
@@ -279,27 +275,19 @@ void ParticleFilter::resample() {
   std::discrete_distribution<> d(weights.begin(), weights.end());
 
 
-  // show particles
-  //std::cout << "New Particles: " << std::endl;
-
   for (int i = 0; i < num_particles; ++i) {
     new_particles[i] = particles[d(gen)];
-    //std::cout << particle_str(new_particles[i]) << std::endl;
   }
 
-  // Strange: Standard "=" or assign is not working for vector
-  //particles.assign(new_particles.begin(), new_particles.end());
+  // MAGIC: (need tweak C++ more for this)
+  // Strange: operator "=" or assign is not working for vector
+  // particles.assign(new_particles.begin(), new_particles.end());
+  // or particles = new_particles
+  // Why?
   for (int i = 0; i < num_particles; ++i) {
     particles[i] = new_particles[i];
   }
 
-//  std::cout << "New!!! Particles (ITERATE): " << std::endl;
-//  for (int i = 0; i < num_particles; ++i) {
-//    std::cout << particle_str(particles[i]) << std::endl;
-//  }
-//
-//  std::cout << "New!!! Particles: " << std::endl;
-//  print_particles();
 
 
 }

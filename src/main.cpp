@@ -102,11 +102,9 @@ int main() {
 			pf.prediction(delta_t, sigma_pos, position_meas[i-1].velocity, position_meas[i-1].yawrate);
 		}
 
-//    cout << "predicted ----------" << endl;
 
     // show particles
 //    pf.print_particles();
-
 //    std::cin.ignore();
 
 		// simulate the addition of noise to noiseless observation data.
@@ -123,21 +121,19 @@ int main() {
 
     // show observations
 //    print_observations(noisy_observations);
-
 //    std::cin.ignore();
 
 		// Update the weights and resample
 		pf.updateWeights(sensor_range, sigma_landmark, noisy_observations, map);
 
-//    cout << "weights updated ----------" << endl;
 
     // show particles
 //    cout << "Updated weights: " << endl;
 //    pf.print_particles();
 
+
 		pf.resample();
 
-//    cout << "resampled ----------" << endl;
 
     // show particles
 //    cout << "Resampled: " << endl;
@@ -146,7 +142,6 @@ int main() {
 		// Calculate and output the average weighted error of the particle filter over all time steps so far.
 		vector<Particle> particles = pf.particles;
 		int num_particles = particles.size();
-//		cout << "Num particles: " << num_particles << endl;
 		double highest_weight = 0.0;
 		Particle best_particle = particles[0];
 		for (int i = 0; i < num_particles; ++i) {
