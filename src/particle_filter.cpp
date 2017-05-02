@@ -13,6 +13,9 @@
 #include "particle_filter.h"
 #include "helper_functions.h"
 
+inline double normalize_angle(double angle) {
+  return fmod(angle, 2.0 * M_PI);
+}
 
 std::string particle_str(Particle p) {
   std::ostringstream pout;
@@ -21,6 +24,17 @@ std::string particle_str(Particle p) {
   return pout.str();
 }
 
+
+void print_particles(std::vector<Particle> particles) {
+  int num_particles = particles.size();
+  for (int i = 0; i < num_particles; ++i) {
+    std::cout << particle_str(particles[i]) << std::endl;
+  }
+}
+
+//  void transformObservations(Particle particle, std::vector<LandmarkObs>& observations);
+//  void predictObservations(Particle particle, double sensor_range, Map map_landmarks, std::vector<LandmarkObs>& predicted);
+;
 
 
 void ParticleFilter::init(double x, double y, double theta, double std[]) {
@@ -116,7 +130,8 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
 
 }
 
-void ParticleFilter::transformObservations(Particle particle, std::vector<LandmarkObs>& observations) {
+//void ParticleFilter::transformObservations(Particle particle, std::vector<LandmarkObs>& observations) {
+void transformObservations(Particle particle, std::vector<LandmarkObs>& observations) {
   // transforms observations from Vehicle's coordinates to Map's for given particle
 
   int obs_size = observations.size();
@@ -131,11 +146,11 @@ void ParticleFilter::transformObservations(Particle particle, std::vector<Landma
 //    observations[i].x = cos(particle.theta) * observations[i].x - sin(particle.theta) * observations[i].y + particle.x;
 //    observations[i].y = sin(particle.theta) * observations[i].x + cos(particle.theta) * observations[i].y + particle.y;
 
-
   }
 }
 
-void ParticleFilter::predictObservations(Particle particle, double sensor_range, Map map_landmarks, std::vector<LandmarkObs>& predicted) {
+//void ParticleFilter::predictObservations(Particle particle, double sensor_range, Map map_landmarks, std::vector<LandmarkObs>& predicted) {
+void predictObservations(Particle particle, double sensor_range, Map map_landmarks, std::vector<LandmarkObs>& predicted) {
   int map_size = map_landmarks.landmark_list.size();
   for (int i = 0; i < map_size; ++i) {
     double d = dist(particle.x, particle.y, map_landmarks.landmark_list[i].x_f, map_landmarks.landmark_list[i].y_f);
@@ -300,10 +315,4 @@ void ParticleFilter::write(std::string filename) {
 		dataFile << particles[i].x << " " << particles[i].y << " " << particles[i].theta << "\n";
 	}
 	dataFile.close();
-}
-
-void ParticleFilter::print_particles() {
-  for (int i = 0; i < num_particles; ++i) {
-    std::cout << particle_str(particles[i]) << std::endl;
-  }
 }

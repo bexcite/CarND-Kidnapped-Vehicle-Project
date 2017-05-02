@@ -110,10 +110,10 @@ public:
 		return is_initialized;
 	}
 
-  void print_particles();
+//  void print_particles();
 
-  void transformObservations(Particle particle, std::vector<LandmarkObs>& observations);
-  void predictObservations(Particle particle, double sensor_range, Map map_landmarks, std::vector<LandmarkObs>& predicted);
+//  void transformObservations(Particle particle, std::vector<LandmarkObs>& observations);
+//  void predictObservations(Particle particle, double sensor_range, Map map_landmarks, std::vector<LandmarkObs>& predicted);
 };
 
 

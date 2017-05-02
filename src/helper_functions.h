@@ -79,9 +79,6 @@ inline double * getError(double gt_x, double gt_y, double gt_theta, double pf_x,
 	return error;
 }
 
-inline double normalize_angle(double angle) {
-	return fmod(angle, 2.0 * M_PI);
-}
 
 /* Reads map data from a file.
  * @param filename Name of file containing map data.
