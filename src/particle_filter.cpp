@@ -32,7 +32,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	std::cout << "Particle::init: x=" << x << ", " << "y=" << y << ", "
 						<< "theta=" << theta << std::endl;
 
-	num_particles = 10; //100
+	num_particles = 100; //100
   particles.clear();
   particles.reserve(num_particles);
   weights.clear();
@@ -118,22 +118,22 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
 
 void ParticleFilter::transformObservations(Particle particle, std::vector<LandmarkObs>& observations) {
   // transforms observations from Vehicle's coordinates to Map's for given particle
-  std::cout << "Particle = " << particle_str(particle) << std::endl;
+//  std::cout << "Particle = " << particle_str(particle) << std::endl;
 
   int obs_size = observations.size();
   for (int i = 0; i < obs_size; ++i) {
-    std::cout << "Orig: " << obs_str(observations[i]) << std::endl;
-    std::cout << "cos(particle(theta)) = " << cos(particle.theta) << ", sin(theta) = " << sin(particle.theta) << std::endl;
-    std::cout << "x_d = " << (cos(particle.theta) * observations[i].x - sin(particle.theta) * observations[i].y + particle.x) << std::endl;
+//    std::cout << "Orig: " << obs_str(observations[i]) << std::endl;
+//    std::cout << "cos(particle(theta)) = " << cos(particle.theta) << ", sin(theta) = " << sin(particle.theta) << std::endl;
+//    std::cout << "x_d = " << (cos(particle.theta) * observations[i].x - sin(particle.theta) * observations[i].y + particle.x) << std::endl;
     double x_d = cos(particle.theta) * observations[i].x - sin(particle.theta) * observations[i].y + particle.x;
     double y_d = sin(particle.theta) * observations[i].x + cos(particle.theta) * observations[i].y + particle.y;
-    std::cout << "y_d = " << y_d << std::endl;
-    std::cout << "y_d_copy = " << (sin(particle.theta) * observations[i].x + cos(particle.theta) * observations[i].y + particle.y) << std::endl;
+//    std::cout << "y_d = " << y_d << std::endl;
+//    std::cout << "y_d_copy = " << (sin(particle.theta) * observations[i].x + cos(particle.theta) * observations[i].y + particle.y) << std::endl;
 //    observations[i].x = cos(particle.theta) * observations[i].x - sin(particle.theta) * observations[i].y + particle.x;
 //    observations[i].y = sin(particle.theta) * observations[i].x + cos(particle.theta) * observations[i].y + particle.y;
     observations[i].x = x_d;
     observations[i].y = y_d;
-    std::cout << "Upd: " << obs_str(observations[i]) << std::endl;
+//    std::cout << "Upd: " << obs_str(observations[i]) << std::endl;
   }
 }
 
@@ -180,10 +180,10 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     std::vector<LandmarkObs> predicted;
     predictObservations(p, sensor_range, map_landmarks, predicted);
 
-    std::cout << "Transformed observations: for " << particle_str(p) << std::endl;
-    print_observations(transObservations);
-    std::cout << "Predicted Observations: " << std::endl;
-    print_observations(predicted);
+//    std::cout << "Transformed observations: for " << particle_str(p) << std::endl;
+//    print_observations(transObservations);
+//    std::cout << "Predicted Observations: " << std::endl;
+//    print_observations(predicted);
 
     double weight = 1.0;
 
@@ -225,17 +225,16 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
       double ex = -1.0 * (exX + exY);
 
       double prob = (1.0 / sqrt(2 * M_PI * std_landmark[0] * std_landmark[1]) ) * exp(ex);
-//      double prob = (1.0 / (2 * M_PI * std_landmark[0] * std_landmark[1]) ) * exp(ex);
 
       weight *= prob;
 
-      std::cout << "prob = " << prob << " O=" << obs_str(transObservations[j]) << " P=" << obs_str(nearest_landmark) << ": " << nearest_landmark.id << " min_d = " << min_d << std::endl;
+//      std::cout << "prob = " << prob << " O=" << obs_str(transObservations[j]) << " P=" << obs_str(nearest_landmark) << ": " << nearest_landmark.id << " min_d = " << min_d << std::endl;
 
 
 
     }
 
-    std::cout << "[" << i << "] weight = " << weight << " for " << particle_str(p) << std::endl;
+//    std::cout << "[" << i << "] weight = " << weight << " for " << particle_str(p) << std::endl;
 
     weight_sum += weight;
 
